@@ -6,6 +6,8 @@ With love @AlmartDev :)
 
 */
 
+#include <MegaPi.h>
+
 #include <Wire.h>
 #include <MPU6050.h>
 #include <PID_v1.h>
