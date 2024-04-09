@@ -8,17 +8,13 @@ With love @AlmartDev :)
 
 */
 
+// THIS CODE IS NOT COMPLETE (and might not ever be completed, sorry!) -> switched to a MegaPi instead of Arduino Uno
+
 #include <Wire.h>
 #include <PID_v1.h>
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-
-// Fancy debug here
-#define DEBUG 1
-#define DEBUG_START(x) if(DEBUG) Serial.begin(x)
-#define DEBUG_PRINT(x) if(DEBUG) Serial.print(x)
-#define DEBUG_PRINTLN(x) if(DEBUG) Serial.println(x)
 
 // Variables
 double setpoint = 0;
@@ -29,10 +25,12 @@ double Kp = 0.5, Ki = 0.1, Kd = 0.1;
 Adafruit_MPU6050 mpu;
 PID pid(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
+int forward, reverse;
+gtfr
 byte statusPin = 6; // LED pin
 
 void setup() {
-    DEBUG_START(9600);
+    Serial.begin(9600);
 
     pinMode(statusPin, OUTPUT);
 
@@ -46,10 +44,8 @@ void setup() {
     mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
     mpu.setGyroRange(MPU6050_RANGE_500_DEG);
     mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-    mpu.setSampleRate(50);
 
     // Initialize PID controller
-    
     pid.SetMode(AUTOMATIC);
     pid.SetOutputLimits(-255, 255);
     pid.SetSampleTime(10);
@@ -58,6 +54,9 @@ void setup() {
     digitalWrite(statusPin, HIGH);
     delay(500);
     digitalWrite(statusPin, LOW);
+
+    // Motor setup
+    
 }
 
 void loop() {
@@ -68,15 +67,15 @@ void loop() {
 
     pid.Compute();
 
-    DEBUG_PRINT("Input: ");
-    DEBUG_PRINT(input);
-    DEBUG_PRINT(" Output: ");
-    DEBUG_PRINT(output);
-    DEBUG_PRINT(" Setpoint: ");
-    DEBUG_PRINTLN(setpoint);
+    //Serial.print("Input: ");
+    Serial.println(input);
+    //Serial.print(" Output: ");
+    //Serial.println(output);
 
     // Move the robot with the output value here
     // TODO: Implement the motor control please
 
+
+
     delay(10);
-}
+} 
