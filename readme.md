@@ -1,7 +1,7 @@
 # StableBot
 ### Overview
 
-StableBot, a self-balancing robot project built using a MegaPi (and arduino...), MPU6050 built in gyroscope, and PID control. This project aims to create a robot that can autonomously balance itself on two wheels using sensor data and precise control algorithms.
+StableBot, a self-balancing robot project built using a MegaPi MeAuriga V1.3 (and arduino...), MPU6050 built in gyroscope, and PID control. This project aims to create a robot that can autonomously balance itself on two wheels using sensor data and precise control algorithms.
 
 ### Features
 

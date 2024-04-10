@@ -1,127 +1,103 @@
 /*
------------- StableBot ------------ (CODE NOT TESTED)
+------------ StableBot ------------ (CODE NEEDS VALUE TUNING!)
 
-MegaPi robot that uses a PID controller to balance itself on two wheels.
+MegaPi (MeAuriga V1.3) robot that uses a PID controller to balance itself on two wheels.
 With love @AlmartDev :)
 
 */
 
-#include <MegaPi.h>
+#include <MeAuriga.h>
 
 #include <Wire.h>
-#include <MPU6050.h>
 #include <PID_v1.h>
-
-// Define MPU6050
-MPU6050 mpu;
-
-// Define encoder pins
-#define LEFT_ENCODER_A 2
-#define LEFT_ENCODER_B 3
-#define RIGHT_ENCODER_A 4
-#define RIGHT_ENCODER_B 5
-
-// Define motor pins
-#define LEFT_MOTOR_PIN1 6
-#define LEFT_MOTOR_PIN2 7
-#define RIGHT_MOTOR_PIN1 8
-#define RIGHT_MOTOR_PIN2 9
-
-double Kp = 15;
-double Ki = 0.1;
-double Kd = 0.1;
 
 double setpoint = 0;
 double input, output;
+
+double Kp = 0.5;
+double Ki = 0.1;
+double Kd = 0.1;
+
 PID pid(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
-int leftMotorSpeed = 0;
-int rightMotorSpeed = 0;
+MeEncoderOnBoard Encoder_1(SLOT1);
+MeEncoderOnBoard Encoder_2(SLOT2);
 
-volatile long leftEncoderCount = 0;
-volatile long rightEncoderCount = 0;
-int prevLeftEncoderState = 0;
-int prevRightEncoderState = 0;
+Gyro gyro(0, 0x69);
 
-void updateLeftEncoder();
-void updateRightEncoder();
+void isr_process_encoder1(void)
+{
+	if (digitalRead(Encoder_1.getPortB()) == 0)
+	{
+		Encoder_1.pulsePosMinus();
+	}
+	else
+	{
+		Encoder_1.pulsePosPlus();
+	}
+}
+
+void isr_process_encoder2(void)
+{
+	if (digitalRead(Encoder_2.getPortB()) == 0)
+	{
+		Encoder_2.pulsePosMinus();
+	}
+	else
+	{
+		Encoder_2.pulsePosPlus();
+	}
+}
 
 void setup()
 {
-	Wire.begin();
-	mpu.initialize();
+	Serial.begin(9600);
+	gyro.begin();
 
-	pinMode(LEFT_ENCODER_A, INPUT);
-	pinMode(LEFT_ENCODER_B, INPUT);
-	pinMode(RIGHT_ENCODER_A, INPUT);
-	pinMode(RIGHT_ENCODER_B, INPUT);
+	attachInterrupt(Encoder_1.getIntNum(), isr_process_encoder1, RISING);
+	attachInterrupt(Encoder_2.getIntNum(), isr_process_encoder2, RISING);
+	Serial.begin(115200);
 
-	attachInterrupt(digitalPinToInterrupt(LEFT_ENCODER_A), updateLeftEncoder, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(RIGHT_ENCODER_A), updateRightEncoder, CHANGE);
+	// Initialize PID controller (might have to change the values)
+    pid.SetMode(AUTOMATIC);
+    pid.SetOutputLimits(-255, 255);
+    pid.SetSampleTime(10);
 
-	pinMode(LEFT_MOTOR_PIN1, OUTPUT);
-	pinMode(LEFT_MOTOR_PIN2, OUTPUT);
-	pinMode(RIGHT_MOTOR_PIN1, OUTPUT);
-	pinMode(RIGHT_MOTOR_PIN2, OUTPUT);
+	// Set PWM 8KHz
+	TCCR1A = _BV(WGM10);
+	TCCR1B = _BV(CS11) | _BV(WGM12);
 
-	pid.SetMode(AUTOMATIC);
+	TCCR2A = _BV(WGM21) | _BV(WGM20);
+	TCCR2B = _BV(CS21);
+}
+
+void setSpeed(int speed)
+{
+	if (speed > 0)	// IMPORTANT: Motors are inverted with each other!
+	{
+		Encoder_1.setMotorPwm(speed);
+		Encoder_2.setMotorPwm(-speed);
+	}
+	else
+	{
+		Encoder_1.setMotorPwm(-speed);
+		Encoder_2.setMotorPwm(speed);
+	}
+
+	Encoder_1.updateSpeed();
+	Encoder_2.updateSpeed();
 }
 
 void loop()
 {
-	// Read MPU6050 data
-	int16_t ax, ay, az, gx, gy, gz;
-	mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-	float gyroAngle = gx / 131.0; // Sensitivity: 131 LSB/degree/s, Using the X-axis
+	gyro.update();
+  	Serial.read();
 
-	input = gyroAngle;
+	input = gyro.getAngleX(); // Using the X-axis to balance the robot
 
 	pid.Compute();
 
-	leftMotorSpeed = constrain(output, -255, 255);
-	rightMotorSpeed = constrain(output, -255, 255);
+	setSpeed(output);
 
-	if (leftMotorSpeed > 0)
-	{
-		digitalWrite(LEFT_MOTOR_PIN1, HIGH);
-		digitalWrite(LEFT_MOTOR_PIN2, LOW);
-	}
-	else
-	{
-		digitalWrite(LEFT_MOTOR_PIN1, LOW);
-		digitalWrite(LEFT_MOTOR_PIN2, HIGH);
-	}
-	analogWrite(LEFT_MOTOR_SPEED, abs(leftMotorSpeed));
-
-	if (rightMotorSpeed > 0)
-	{
-		digitalWrite(RIGHT_MOTOR_PIN1, HIGH);
-		digitalWrite(RIGHT_MOTOR_PIN2, LOW);
-	}
-	else
-	{
-		digitalWrite(RIGHT_MOTOR_PIN1, LOW);
-		digitalWrite(RIGHT_MOTOR_PIN2, HIGH);
-	}
-	analogWrite(RIGHT_MOTOR_SPEED, abs(rightMotorSpeed));
-}
-
-void updateLeftEncoder()
-{
-	int state = digitalRead(LEFT_ENCODER_B);
-	if (prevLeftEncoderState == LOW && state == HIGH)
-	{
-		leftEncoderCount++;
-	}
-	prevLeftEncoderState = state;
-}
-
-void updateRightEncoder()
-{
-	int state = digitalRead(RIGHT_ENCODER_B);
-	if (prevRightEncoderState == LOW && state == HIGH)
-	{
-		rightEncoderCount++;
-	}
-	prevRightEncoderState = state;
+	delay(10);
 }
