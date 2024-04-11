@@ -7,7 +7,7 @@ StableBot, a self-balancing robot project built using a MegaPi MeAuriga V1.3 (an
 
 - Self-balancing functionality using a PID controller.
 - Real-time angle measurement using MPU6050 gyroscope sensor.
-- Adjustable PID parameters for fine-tuning the balance.
+- Adjustable PID parametedrs for fine-tuning the balance.
 - Compatibility with Arduino boards and common components.
 
 ### Compiling

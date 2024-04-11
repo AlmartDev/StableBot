@@ -14,9 +14,9 @@ With love @AlmartDev :)
 double setpoint = 0;
 double input, output;
 
-double Kp = 0.5;
-double Ki = 0.1;
-double Kd = 0.1;
+double Kp = 0.5;	// CHANGE THIS STUFF BEFORE RUNNING THE CODE!
+double Ki = 0.1;	// AND THIS
+double Kd = 0.1;	// AND THIS...
 
 PID pid(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
@@ -73,16 +73,8 @@ void setup()
 
 void setSpeed(int speed)
 {
-	if (speed > 0)	// IMPORTANT: Motors are inverted with each other!
-	{
-		Encoder_1.setMotorPwm(speed);
-		Encoder_2.setMotorPwm(-speed);
-	}
-	else
-	{
-		Encoder_1.setMotorPwm(-speed);
-		Encoder_2.setMotorPwm(speed);
-	}
+	Encoder_1.setMotorPwm(-speed);
+	Encoder_2.setMotorPwm(speed);
 
 	Encoder_1.updateSpeed();
 	Encoder_2.updateSpeed();
@@ -98,6 +90,10 @@ void loop()
 	pid.Compute();
 
 	setSpeed(output);
+
+	// Nice to use with the serial plotter
+	Serial.println(input);
+	Serial.println(output);
 
 	delay(10);
 }
