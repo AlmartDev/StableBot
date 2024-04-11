@@ -13,3 +13,5 @@ StableBot, a self-balancing robot project built using a MegaPi MeAuriga V1.3 (an
 ### Compiling
 
 I did it in visual studio code but might be much easier to compile it in the Arduino IDE, make sure to install all required libraries and check your wiring! (pretty easy if using a megapi)
+
+[preview](https://github.com/AlmartDev/StableBot/blob/main/preview.jpg)
