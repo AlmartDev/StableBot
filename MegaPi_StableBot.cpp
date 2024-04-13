@@ -14,9 +14,9 @@ With love @AlmartDev :)
 double setpoint = 0;
 double input, output;
 
-double Kp = 0.5;	// CHANGE THIS STUFF BEFORE RUNNING THE CODE!
-double Ki = 0.1;	// AND THIS
-double Kd = 0.1;	// AND THIS...
+double Kp = 23;
+double Ki = .8;
+double Kd = .2;
 
 PID pid(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
